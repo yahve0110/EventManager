@@ -1,4 +1,4 @@
-package com.yahve.eventmanager.Repository;
+package com.yahve.eventmanager.repository;
 
 import com.yahve.eventmanager.entity.Location;
 import org.springframework.data.jpa.repository.JpaRepository;

@@ -30,41 +30,35 @@ public class LocationsController {
   public ResponseEntity<List<LocationDto>> getLocations() {
     logger.info("Fetching all locations");
 
-    List<LocationModel> locationModels = locationService.getLocations();
-    List<LocationDto> locationDtos = locationMapper.fromModelsToDtos(locationModels);
-
-    return ResponseEntity.ok(locationDtos);
+    return ResponseEntity.ok(locationMapper.fromModelsToDtos(locationService.getLocations()));
   }
 
   @PostMapping
   public ResponseEntity<LocationDto> createLocation(@Valid @RequestBody LocationDto locationDto) {
     logger.info("Received request to create location: {}", locationDto);
 
-    LocationModel locationModel = locationMapper.fromDtoToModel(locationDto);
-    LocationModel savedLocation = locationService.createLocation(locationModel);
+    LocationModel createdLocation = locationService.createLocation(locationMapper.fromDtoToModel(locationDto));
+    logger.info("Successfully created location with ID: {}", createdLocation.id());
 
-    LocationDto response = locationMapper.fromModelToDto(savedLocation);
-    logger.info("Successfully created location with ID: {}", savedLocation.id());
-    return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    return ResponseEntity.status(HttpStatus.CREATED).body(locationMapper.fromModelToDto(createdLocation));
   }
+
 
   @DeleteMapping("/{locationId}")
   public ResponseEntity<String> deleteLocation(@PathVariable Integer locationId) {
     logger.info("Received request to delete location with ID: {}", locationId);
     locationService.deleteLocation(locationId);
     logger.info("Successfully deleted location with ID: {}", locationId);
-    return ResponseEntity.status(HttpStatus.NO_CONTENT).body("Location deleted successfully");
+    return ResponseEntity.noContent().build();
   }
-
 
 
   @GetMapping("/{locationId}")
   public ResponseEntity<LocationDto> getLocation(@PathVariable Integer locationId) {
     logger.info("Fetching location with ID: {}", locationId);
 
-    LocationModel locationModel = locationService.getLocationById(locationId);
-    LocationDto response = locationMapper.fromModelToDto(locationModel);
-    return ResponseEntity.ok(response);
+    return ResponseEntity.ok(
+      locationMapper.fromModelToDto(locationService.getLocationById(locationId)));
   }
 
 
@@ -72,9 +66,8 @@ public class LocationsController {
   public ResponseEntity<LocationDto> updateLocation(@PathVariable Integer locationId, @RequestBody LocationDto locationDto) {
     logger.info("Received request to update location with ID: {} to new details: {}", locationId, locationDto);
 
-    LocationModel locationModelToUpdate = locationMapper.fromDtoToModel(locationDto);
-    LocationModel updatedLocationModel = locationService.updateLocation(locationId, locationModelToUpdate);
-    LocationDto updatedLocationDto = locationMapper.fromModelToDto(updatedLocationModel);
+    LocationDto updatedLocationDto = locationMapper.fromModelToDto(
+      locationService.updateLocation(locationId, locationMapper.fromDtoToModel(locationDto)));
 
     logger.info("Successfully updated location with ID: {}", locationId);
     return ResponseEntity.ok(updatedLocationDto);
