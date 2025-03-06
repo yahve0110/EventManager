@@ -1,4 +1,11 @@
 package com.yahve.eventmanager.model;
 
-public class LocationModel {
+//used for service
+public record LocationModel(
+        Integer id,
+        String name,
+        String address,
+        Integer capacity,
+        String description
+) {
 }
