@@ -1,6 +1,5 @@
 package com.yahve.eventmanager.entity;
 
-import com.yahve.eventmanager.user.UserRole;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -16,13 +15,16 @@ public class User {
   @Column(name = "id")
   private Long id;
 
-  @Column(unique = true)
+  @Column(unique = true, name = "login")
   private String login;
 
+  @Column(name = "password")
   private String password;
 
+  @Column(name = "age")
   private Integer age;
 
+  @Column(name = "role")
   private String role;
 
 

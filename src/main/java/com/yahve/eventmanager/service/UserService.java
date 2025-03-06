@@ -1,36 +1,56 @@
 package com.yahve.eventmanager.service;
 
 import com.yahve.eventmanager.entity.User;
+import com.yahve.eventmanager.mapper.UserMapper;
 import com.yahve.eventmanager.model.UserModel;
 import com.yahve.eventmanager.repository.UserRepository;
 import com.yahve.eventmanager.user.SignUpRequest;
 import com.yahve.eventmanager.user.UserRole;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
 public class UserService {
 
   private final UserRepository userRepository;
+  private final PasswordEncoder passwordEncoder;
+  private final UserMapper userMapper;
 
-  UserService(UserRepository userRepository) {
+  UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, UserMapper userMapper) {
     this.userRepository = userRepository;
+    this.passwordEncoder = passwordEncoder;
+    this.userMapper = userMapper;
   }
 
   public UserModel registerUser(@Valid SignUpRequest signUpRequest) {
-  if(userRepository.existsByLogin(signUpRequest.login())){
-    throw new IllegalArgumentException("Username is already exists");
-  }
+    if (userRepository.existsByLogin(signUpRequest.login())) {
+      throw new IllegalArgumentException("Username is already exists");
+    }
+    var hashedPassword = passwordEncoder.encode(signUpRequest.password());
 
     var userToSave = new User(
       signUpRequest.login(),
-      signUpRequest.password(),
+      hashedPassword,
       signUpRequest.age(),
       UserRole.USER.name()
     );
 
     User savedUser = userRepository.save(userToSave);
 
-    return new UserModel(savedUser.getId(), savedUser.getLogin(), savedUser.getAge(), UserRole.valueOf(savedUser.getRole()));
+    return userMapper.toModel(savedUser);
+  }
+
+  public UserModel getUserById(Long id) {
+    User userToFind = userRepository.findById(id)
+      .orElseThrow(() -> new RuntimeException("User not found with ID: " + id));
+
+    return userMapper.toModel(userToFind);
+  }
+
+  public User findByLogin(String loginFromToken) {
+    return userRepository.findByLogin(loginFromToken)
+      .orElseThrow(() -> new EntityNotFoundException("User not found"));
   }
 }
