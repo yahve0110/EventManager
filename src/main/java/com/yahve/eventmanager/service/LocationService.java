@@ -1,6 +1,6 @@
 package com.yahve.eventmanager.service;
 
-import com.yahve.eventmanager.Repository.LocationRepository;
+import com.yahve.eventmanager.repository.LocationRepository;
 import com.yahve.eventmanager.entity.Location;
 import com.yahve.eventmanager.exception.ResourceNotFoundException;
 import com.yahve.eventmanager.mapper.LocationMapper;
@@ -27,31 +27,19 @@ public class LocationService {
   public LocationModel createLocation(LocationModel locationModel) {
     logger.info("Starting to create location: {}", locationModel);
 
-    try {
-      boolean locationExists = locationRepository.existsByNameAndAddress(
-        locationModel.name(),
-        locationModel.address()
-      );
-
-      if (locationExists) {
-        throw new IllegalArgumentException("Location with the same name and address already exists");
-      }
-
-      Location locationEntity = locationMapper.fromModelToEntity(locationModel);
-      logger.debug("Mapped LocationModel to Location entity: {}", locationEntity);
-
-      Location savedLocation = locationRepository.save(locationEntity);
-      logger.info("Successfully saved location with ID: {}", savedLocation.getId());
-
-      return locationMapper.fromEntityToModel(savedLocation);
-    } catch (IllegalArgumentException e) {
-      logger.error("Validation error: {}", e.getMessage());
-      throw e;
-    } catch (Exception e) {
-      logger.error("Error while creating location: {}", locationModel, e);
-      throw new RuntimeException("Failed to create location", e);
+    if (locationModel.id() != null) {
+      throw new IllegalArgumentException("Location ID should not be provided for a new location");
     }
+
+    Location locationEntity = locationMapper.fromModelToEntity(locationModel);
+    logger.debug("Mapped LocationModel to Location entity: {}", locationEntity);
+
+    Location savedLocation = locationRepository.save(locationEntity);
+    logger.info("Successfully saved location with ID: {}", savedLocation.getId());
+
+    return locationMapper.fromEntityToModel(savedLocation);
   }
+
 
   public List<LocationModel> getLocations() {
     logger.info("Fetching all locations");
@@ -75,14 +63,12 @@ public class LocationService {
   public void deleteLocation(Integer id) {
     logger.info("Attempting to delete location with ID: {}", id);
 
-    Optional<Location> locationEntityOptional = locationRepository.findById(id);
-    if (locationEntityOptional.isPresent()) {
-      locationRepository.deleteById(id);
-      logger.info("Location with ID: {} successfully deleted", id);
-    } else {
-      logger.warn("Location with ID: {} not found for deletion", id);
-      throw new ResourceNotFoundException("Location not found with ID " + id);
-    }
+    //to check if location exists
+    getLocationById(id);
+
+    locationRepository.deleteById(id);
+    logger.info("Location with ID: {} successfully deleted", id);
+
   }
 
   public LocationModel updateLocation(Integer locationId, LocationModel locationModelToUpdate) {
@@ -111,6 +97,4 @@ public class LocationService {
       throw new ResourceNotFoundException("Location not found with ID " + locationId);
     }
   }
-
-
 }

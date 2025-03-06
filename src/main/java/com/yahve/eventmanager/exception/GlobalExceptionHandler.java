@@ -6,11 +6,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
+import javax.naming.AuthenticationException;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
@@ -67,6 +69,19 @@ public class GlobalExceptionHandler {
         );
         return ResponseEntity
           .status(HttpStatus.INTERNAL_SERVER_ERROR)
+          .body(errorDto);
+    }
+
+    @ExceptionHandler(AuthorizationDeniedException.class)
+    public ResponseEntity<ServerErrorDto> handleAuthorizationException(Exception e) {
+        logger.error("Handle authorization exception", e);
+        var errorDto = new ServerErrorDto(
+          "Forbidden",
+          e.getMessage(),
+          LocalDateTime.now()
+        );
+        return ResponseEntity
+          .status(HttpStatus.FORBIDDEN)
           .body(errorDto);
     }
 }
