@@ -18,25 +18,19 @@ public class UserService {
   private final PasswordEncoder passwordEncoder;
   private final UserMapper userMapper;
 
-  UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, UserMapper userMapper) {
+  public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, UserMapper userMapper) {
     this.userRepository = userRepository;
     this.passwordEncoder = passwordEncoder;
     this.userMapper = userMapper;
   }
 
   public UserModel registerUser(@Valid SignUpRequest signUpRequest) {
-    if (userRepository.existsByLogin(signUpRequest.login())) {
-      throw new IllegalArgumentException("Username is already exists");
+    if (userExists(signUpRequest.login())) {
+      throw new IllegalArgumentException("Username already exists");
     }
+
     var hashedPassword = passwordEncoder.encode(signUpRequest.password());
-
-    var userToSave = new User(
-      signUpRequest.login(),
-      hashedPassword,
-      signUpRequest.age(),
-      UserRole.USER.name()
-    );
-
+    var userToSave = new User(signUpRequest.login(), hashedPassword, signUpRequest.age(), UserRole.USER.name());
     User savedUser = userRepository.save(userToSave);
 
     return userMapper.toModel(savedUser);
@@ -49,8 +43,16 @@ public class UserService {
     return userMapper.toModel(userToFind);
   }
 
-  public User findByLogin(String loginFromToken) {
-    return userRepository.findByLogin(loginFromToken)
+  public User findByLogin(String login) {
+    return userRepository.findByLogin(login)
       .orElseThrow(() -> new EntityNotFoundException("User not found"));
+  }
+
+  public boolean userExists(String login) {
+    return userRepository.existsByLogin(login);
+  }
+
+  public void saveUser(User user) {
+    userRepository.save(user);
   }
 }

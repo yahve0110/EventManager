@@ -8,7 +8,4 @@ public record UserModel(
   Integer age,
   UserRole role
   ) {
-
-
-
 }

@@ -1,12 +1,11 @@
 package com.yahve.eventmanager.config;
 
 import com.yahve.eventmanager.entity.User;
-import com.yahve.eventmanager.repository.UserRepository;
+import com.yahve.eventmanager.service.UserService;
 import com.yahve.eventmanager.user.UserRole;
+import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.event.ContextRefreshedEvent;
-import org.springframework.context.event.EventListener;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
@@ -15,27 +14,30 @@ public class DatabaseInitializer {
 
   private static final Logger logger = LoggerFactory.getLogger(DatabaseInitializer.class);
 
-  private final UserRepository userRepository;
+  private final UserService userService;
   private final PasswordEncoder passwordEncoder;
 
-  public DatabaseInitializer(UserRepository userRepository, PasswordEncoder passwordEncoder) {
-    this.userRepository = userRepository;
+  public DatabaseInitializer(UserService userService, PasswordEncoder passwordEncoder) {
+    this.userService = userService;
     this.passwordEncoder = passwordEncoder;
   }
 
-  @EventListener(ContextRefreshedEvent.class)
-  public void initDatabase() {
-    createDefaultUser("admin", "admin", UserRole.ADMIN.name());
-    createDefaultUser("user", "user", UserRole.USER.name());
+  @PostConstruct
+  public void initUsers() {
+    createUserIfNotExists("admin", "admin", UserRole.ADMIN);
+    createUserIfNotExists("user", "user", UserRole.USER);
   }
 
-  private void createDefaultUser(String login, String rawPassword, String role) {
-    if (!userRepository.existsByLogin(login)) {
-      User user = new User(login, passwordEncoder.encode(rawPassword), 25, role);
-      userRepository.save(user);
-      logger.info("Default user '{}' created with role '{}'", login, role);
-    } else {
-      logger.warn("Default user '{}' already exists.", login);
+  private void createUserIfNotExists(String login, String password, UserRole role) {
+    if (userService.userExists(login)) {
+      logger.info("User '{}' already exists.", login);
+      return;
     }
+
+    var hashedPass = passwordEncoder.encode(password);
+    var user = new User(login, hashedPass, 21, role.name());
+    userService.saveUser(user);
+
+    logger.info("Created default user '{}' with role '{}'", login, role);
   }
 }
