@@ -1,5 +1,7 @@
 package com.yahve.eventmanager.service;
 
+import com.yahve.eventmanager.exception.BusinessLogicException;
+import com.yahve.eventmanager.repository.EventRepository;
 import com.yahve.eventmanager.repository.LocationRepository;
 import com.yahve.eventmanager.entity.Location;
 import com.yahve.eventmanager.exception.ResourceNotFoundException;
@@ -7,6 +9,7 @@ import com.yahve.eventmanager.mapper.LocationMapper;
 import com.yahve.eventmanager.model.LocationModel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -18,10 +21,13 @@ public class LocationService {
   private static final Logger logger = LoggerFactory.getLogger(LocationService.class);
   private final LocationMapper locationMapper;
   private final LocationRepository locationRepository;
+  private final EventRepository eventRepository;
 
-  public LocationService(LocationMapper locationMapper, LocationRepository locationRepository) {
+
+  public LocationService(LocationMapper locationMapper, LocationRepository locationRepository, EventRepository eventRepository) {
     this.locationMapper = locationMapper;
     this.locationRepository = locationRepository;
+    this.eventRepository = eventRepository;
   }
 
   public LocationModel createLocation(LocationModel locationModel) {
@@ -65,6 +71,10 @@ public class LocationService {
 
     //to check if location exists
     getLocationById(id);
+
+    if (eventRepository.existsByLocationId(id)) {
+      throw new BusinessLogicException("Cannot delete location: there are events associated with this location", HttpStatus.BAD_REQUEST);
+    }
 
     locationRepository.deleteById(id);
     logger.info("Location with ID: {} successfully deleted", id);
