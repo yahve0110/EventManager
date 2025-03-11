@@ -14,9 +14,9 @@ import java.util.List;
 
 @Component
 public class SchedulerConfig {
+
   private static final Logger logger = LoggerFactory.getLogger(SchedulerConfig.class);
   private final EventRepository eventRepository;
-
 
   public SchedulerConfig(EventRepository eventRepository) {
     this.eventRepository = eventRepository;
