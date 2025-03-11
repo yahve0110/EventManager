@@ -16,16 +16,16 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/users")
-public class UsersController {
+public class UserController {
 
-  private static final Logger logger = LoggerFactory.getLogger(UsersController.class);
+  private static final Logger logger = LoggerFactory.getLogger(UserController.class);
 
   private final UserService userService;
   private final JwtAuthenticationService jwtAuthenticationService;
   private final UserMapper userMapper;
 
 
-  public UsersController(UserService userService, JwtAuthenticationService jwtAuthenticationService, UserMapper userMapper) {
+  public UserController(UserService userService, JwtAuthenticationService jwtAuthenticationService, UserMapper userMapper) {
     this.userService = userService;
     this.jwtAuthenticationService = jwtAuthenticationService;
     this.userMapper = userMapper;

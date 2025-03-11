@@ -1,6 +1,5 @@
 package com.yahve.eventmanager.exception;
 
-import com.yahve.eventmanager.controller.LocationsController;
 import com.yahve.eventmanager.dto.ServerErrorDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,15 +10,13 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-
-import javax.naming.AuthenticationException;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
-    private static final Logger logger = LoggerFactory.getLogger(LocationsController.class);
+    private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ServerErrorDto> handleResourceNotFound(ResourceNotFoundException e) {
@@ -84,4 +81,16 @@ public class GlobalExceptionHandler {
           .status(HttpStatus.FORBIDDEN)
           .body(errorDto);
     }
+
+    @ExceptionHandler(BusinessLogicException.class)
+    public ResponseEntity<ServerErrorDto> handleBusinessLogicException(BusinessLogicException e) {
+        logger.warn("Business logic error: {}", e.getMessage());
+        var errorDto = new ServerErrorDto(
+          "Business error",
+          e.getMessage(),
+          LocalDateTime.now()
+        );
+        return ResponseEntity.status(e.getStatus()).body(errorDto);
+    }
+
 }
