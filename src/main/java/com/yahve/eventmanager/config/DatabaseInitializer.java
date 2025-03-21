@@ -4,23 +4,20 @@ import com.yahve.eventmanager.entity.User;
 import com.yahve.eventmanager.service.UserService;
 import com.yahve.eventmanager.user.UserRole;
 import jakarta.annotation.PostConstruct;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 public class DatabaseInitializer {
 
   private static final Logger logger = LoggerFactory.getLogger(DatabaseInitializer.class);
 
   private final UserService userService;
   private final PasswordEncoder passwordEncoder;
-
-  public DatabaseInitializer(UserService userService, PasswordEncoder passwordEncoder) {
-    this.userService = userService;
-    this.passwordEncoder = passwordEncoder;
-  }
 
   @PostConstruct
   public void initUsers() {
@@ -41,3 +38,4 @@ public class DatabaseInitializer {
     logger.info("Created default user '{}' with role '{}'", login, role);
   }
 }
+

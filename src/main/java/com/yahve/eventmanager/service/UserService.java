@@ -8,21 +8,17 @@ import com.yahve.eventmanager.user.SignUpRequest;
 import com.yahve.eventmanager.user.UserRole;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class UserService {
 
   private final UserRepository userRepository;
   private final PasswordEncoder passwordEncoder;
   private final UserMapper userMapper;
-
-  public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, UserMapper userMapper) {
-    this.userRepository = userRepository;
-    this.passwordEncoder = passwordEncoder;
-    this.userMapper = userMapper;
-  }
 
   public UserModel registerUser(@Valid SignUpRequest signUpRequest) {
     if (userExists(signUpRequest.login())) {
