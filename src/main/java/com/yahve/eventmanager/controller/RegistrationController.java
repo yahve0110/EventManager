@@ -4,6 +4,7 @@ import com.yahve.eventmanager.dto.EventDto;
 import com.yahve.eventmanager.mapper.EventMapper;
 import com.yahve.eventmanager.model.EventModel;
 import com.yahve.eventmanager.service.RegistrationService;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -14,17 +15,13 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/events/registrations")
+@RequiredArgsConstructor
 public class RegistrationController {
 
   private static final Logger logger = LoggerFactory.getLogger(RegistrationController.class);
 
   private final RegistrationService registrationService;
   private final EventMapper eventMapper;
-
-  public RegistrationController(RegistrationService registrationService, EventMapper eventMapper) {
-    this.registrationService = registrationService;
-    this.eventMapper = eventMapper;
-  }
 
   @PostMapping("/{eventId}")
   public ResponseEntity<Void> registerToEvent(@PathVariable Integer eventId) {

@@ -5,12 +5,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
+import java.nio.file.AccessDeniedException;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
@@ -92,5 +94,32 @@ public class GlobalExceptionHandler {
     );
     return ResponseEntity.status(e.getStatus()).body(errorDto);
   }
+
+  @ExceptionHandler(AuthenticationCredentialsNotFoundException.class)
+  public ResponseEntity<ServerErrorDto> handleAuthenticationCredentialsNotFound(AuthenticationCredentialsNotFoundException e) {
+    logger.warn("Authentication error: {}", e.getMessage());
+    var errorDto = new ServerErrorDto(
+      "Authentication error",
+      e.getMessage(),
+      LocalDateTime.now()
+    );
+    return ResponseEntity
+      .status(HttpStatus.UNAUTHORIZED)
+      .body(errorDto);
+  }
+
+  @ExceptionHandler(AccessDeniedException.class)
+  public ResponseEntity<ServerErrorDto> handleAccessDenied(AccessDeniedException e) {
+    logger.warn("Access denied: {}", e.getMessage());
+    var errorDto = new ServerErrorDto(
+      "Access denied",
+      e.getMessage(),
+      LocalDateTime.now()
+    );
+    return ResponseEntity
+      .status(HttpStatus.FORBIDDEN)
+      .body(errorDto);
+  }
+
 
 }

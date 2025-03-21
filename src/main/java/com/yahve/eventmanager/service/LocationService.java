@@ -7,6 +7,7 @@ import com.yahve.eventmanager.entity.Location;
 import com.yahve.eventmanager.exception.ResourceNotFoundException;
 import com.yahve.eventmanager.mapper.LocationMapper;
 import com.yahve.eventmanager.model.LocationModel;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -16,19 +17,14 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class LocationService {
 
   private static final Logger logger = LoggerFactory.getLogger(LocationService.class);
+
   private final LocationMapper locationMapper;
   private final LocationRepository locationRepository;
   private final EventRepository eventRepository;
-
-
-  public LocationService(LocationMapper locationMapper, LocationRepository locationRepository, EventRepository eventRepository) {
-    this.locationMapper = locationMapper;
-    this.locationRepository = locationRepository;
-    this.eventRepository = eventRepository;
-  }
 
   public LocationModel createLocation(LocationModel locationModel) {
     logger.info("Starting to create location: {}", locationModel);

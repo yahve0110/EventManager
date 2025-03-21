@@ -6,6 +6,7 @@ import com.yahve.eventmanager.mapper.EventMapper;
 import com.yahve.eventmanager.model.EventModel;
 import com.yahve.eventmanager.service.EventService;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -16,17 +17,13 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/events")
+@RequiredArgsConstructor
 public class EventController {
 
   private static final Logger logger = LoggerFactory.getLogger(EventController.class);
 
   private final EventService eventService;
   private final EventMapper eventMapper;
-
-  public EventController(EventService eventService, EventMapper eventMapper) {
-    this.eventService = eventService;
-    this.eventMapper = eventMapper;
-  }
 
   @PostMapping
   public ResponseEntity<EventDto> createEvent(@Valid @RequestBody EventDto eventDto) {

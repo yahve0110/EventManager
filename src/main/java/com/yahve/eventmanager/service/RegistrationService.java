@@ -11,6 +11,7 @@ import com.yahve.eventmanager.model.EventModel;
 import com.yahve.eventmanager.repository.EventRepository;
 import com.yahve.eventmanager.repository.RegistrationRepository;
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class RegistrationService {
   private static final Logger logger = LoggerFactory.getLogger(RegistrationService.class);
 
@@ -27,13 +29,6 @@ public class RegistrationService {
   private final EventMapper eventMapper;
   private final AuthenticationService authenticationService;
 
-  public RegistrationService(RegistrationRepository registrationRepository, EventRepository eventRepository,
-                             EventMapper eventMapper, AuthenticationService authenticationService) {
-    this.registrationRepository = registrationRepository;
-    this.eventRepository = eventRepository;
-    this.eventMapper = eventMapper;
-    this.authenticationService = authenticationService;
-  }
 
   @Transactional
   public void registerToEvent(Integer eventId) {

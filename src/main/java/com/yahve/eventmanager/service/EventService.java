@@ -11,6 +11,7 @@ import com.yahve.eventmanager.model.EventModel;
 import com.yahve.eventmanager.model.LocationModel;
 import com.yahve.eventmanager.repository.EventRepository;
 import com.yahve.eventmanager.user.UserRole;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class EventService {
   private static final Logger logger = LoggerFactory.getLogger(EventService.class);
 
@@ -26,14 +28,6 @@ public class EventService {
   private final LocationService locationService;
   private final EventMapper eventMapper;
   private final AuthenticationService authenticationService;
-
-  public EventService(EventRepository eventRepository, EventMapper eventMapper,
-                      LocationService locationService, AuthenticationService authenticationService) {
-    this.eventRepository = eventRepository;
-    this.eventMapper = eventMapper;
-    this.locationService = locationService;
-    this.authenticationService = authenticationService;
-  }
 
   public EventModel createEvent(EventModel eventModel) {
     logger.info("Starting to create event: {}", eventModel);

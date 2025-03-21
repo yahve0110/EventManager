@@ -2,7 +2,7 @@ package com.yahve.eventmanager.security;
 
 import com.yahve.eventmanager.security.jwt.JwtTokenFilter;
 import com.yahve.eventmanager.user.UserRole;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -20,26 +20,16 @@ import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.AnonymousAuthenticationFilter;
 
 @Configuration
+@RequiredArgsConstructor
 public class SecurityConfiguration {
 
   private static final String ROLE_ADMIN = UserRole.ADMIN.name();
   private static final String ROLE_USER = UserRole.USER.name();
+
   private final CustomUserDetailService customUserDetailService;
   private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
   private final AccessDeniedHandler customAccessDeniedHandler;
   private final JwtTokenFilter jwtTokenFilter;
-
-  public SecurityConfiguration(
-    CustomUserDetailService customUserDetailService,
-    CustomAuthenticationEntryPoint customAuthenticationEntryPoint,
-    AccessDeniedHandler customAccessDeniedHandler,
-    JwtTokenFilter jwtTokenFilter
-  ) {
-    this.customUserDetailService = customUserDetailService;
-    this.customAuthenticationEntryPoint = customAuthenticationEntryPoint;
-    this.customAccessDeniedHandler = customAccessDeniedHandler;
-    this.jwtTokenFilter = jwtTokenFilter;
-  }
 
   @Bean
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -64,7 +54,6 @@ public class SecurityConfiguration {
           .requestMatchers(HttpMethod.PUT, "/events/{id}").hasAnyAuthority(ROLE_ADMIN, ROLE_USER)
           .requestMatchers(HttpMethod.GET, "/events/{id}").hasAnyAuthority(ROLE_ADMIN, ROLE_USER)
           .requestMatchers(HttpMethod.GET, "/events/my").hasAnyAuthority(ROLE_USER)
-
 
           .requestMatchers(HttpMethod.POST, "/locations").hasAuthority(ROLE_ADMIN)
           .requestMatchers(HttpMethod.DELETE, "/locations/**").hasAuthority(ROLE_ADMIN)

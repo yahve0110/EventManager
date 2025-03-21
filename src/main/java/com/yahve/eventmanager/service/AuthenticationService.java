@@ -1,8 +1,7 @@
 package com.yahve.eventmanager.service;
 
 import com.yahve.eventmanager.entity.User;
-import com.yahve.eventmanager.exception.BusinessLogicException;
-import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -14,13 +13,13 @@ public class AuthenticationService {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
     if (authentication == null || !authentication.isAuthenticated()) {
-      throw new BusinessLogicException("User is not authenticated", HttpStatus.UNAUTHORIZED);
+      throw new AuthenticationCredentialsNotFoundException("User is not authenticated");
     }
 
     if (authentication.getPrincipal() instanceof User user) {
       return user;
     }
 
-    throw new BusinessLogicException("Invalid authentication principal", HttpStatus.UNAUTHORIZED);
+    throw new AuthenticationCredentialsNotFoundException("Invalid authentication principal");
   }
 }
