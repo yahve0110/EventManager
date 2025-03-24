@@ -5,6 +5,7 @@ import com.yahve.eventmanager.mapper.LocationMapper;
 import com.yahve.eventmanager.model.LocationModel;
 import com.yahve.eventmanager.service.LocationService;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -15,16 +16,12 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/locations")
+@RequiredArgsConstructor
 public class LocationsController {
 
   private static final Logger logger = LoggerFactory.getLogger(LocationsController.class);
   private final LocationMapper locationMapper;
   private final LocationService locationService;
-
-  public LocationsController(LocationMapper locationMapper, LocationService locationService) {
-    this.locationMapper = locationMapper;
-    this.locationService = locationService;
-  }
 
   @GetMapping
   public ResponseEntity<List<LocationDto>> getLocations() {

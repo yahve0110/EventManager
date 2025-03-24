@@ -1,7 +1,8 @@
 package com.yahve.eventmanager.security;
 
 import com.yahve.eventmanager.security.jwt.JwtTokenFilter;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.yahve.eventmanager.user.UserRole;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -19,19 +20,16 @@ import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.AnonymousAuthenticationFilter;
 
 @Configuration
+@RequiredArgsConstructor
 public class SecurityConfiguration {
 
-  @Autowired
-  private CustomUserDetailService customUserDetailService;
+  private static final String ROLE_ADMIN = UserRole.ADMIN.name();
+  private static final String ROLE_USER = UserRole.USER.name();
 
-  @Autowired
-  private CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
-
-  @Autowired
-  private AccessDeniedHandler customAccessDeniedHandler;
-
-  @Autowired
-  private JwtTokenFilter jwtTokenFilter;
+  private final CustomUserDetailService customUserDetailService;
+  private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
+  private final AccessDeniedHandler customAccessDeniedHandler;
+  private final JwtTokenFilter jwtTokenFilter;
 
   @Bean
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -51,16 +49,20 @@ public class SecurityConfiguration {
             "/openapi.yaml"
           ).permitAll()
 
-          .requestMatchers(HttpMethod.POST, "/locations").hasAuthority("ADMIN")
-          .requestMatchers(HttpMethod.DELETE, "/locations/**").hasAuthority("ADMIN")
-          .requestMatchers(HttpMethod.PUT, "/locations/**").hasAuthority("ADMIN")
+          .requestMatchers(HttpMethod.POST, "/events/**").hasAuthority(ROLE_USER)
+          .requestMatchers(HttpMethod.DELETE, "/events/{id}").hasAnyAuthority(ROLE_ADMIN, ROLE_USER)
+          .requestMatchers(HttpMethod.PUT, "/events/{id}").hasAnyAuthority(ROLE_ADMIN, ROLE_USER)
+          .requestMatchers(HttpMethod.GET, "/events/{id}").hasAnyAuthority(ROLE_ADMIN, ROLE_USER)
+          .requestMatchers(HttpMethod.GET, "/events/my").hasAnyAuthority(ROLE_USER)
 
-          .requestMatchers(HttpMethod.GET, "/users/{id}").hasAuthority("ADMIN")
+          .requestMatchers(HttpMethod.POST, "/locations").hasAuthority(ROLE_ADMIN)
+          .requestMatchers(HttpMethod.DELETE, "/locations/**").hasAuthority(ROLE_ADMIN)
+          .requestMatchers(HttpMethod.PUT, "/locations/**").hasAuthority(ROLE_ADMIN)
 
-          .requestMatchers(HttpMethod.POST, "/users")
-          .permitAll()
-          .requestMatchers(HttpMethod.POST, "/users/auth")
-          .permitAll()
+          .requestMatchers(HttpMethod.GET, "/users/{id}").hasAuthority(ROLE_ADMIN)
+
+          .requestMatchers(HttpMethod.POST, "/users").permitAll()
+          .requestMatchers(HttpMethod.POST, "/users/auth").permitAll()
 
           .anyRequest().authenticated()
       )
