@@ -20,15 +20,18 @@ public class JwtTokenManager {
   }
 
 
-  public  String generateToken(String login) {
+  public String generateToken(String login, Long userId, String role) {
     return Jwts
-                .builder()
-                .setSubject(login)
-                .signWith(key)
-                .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + expirationTime))
-                .compact();
+      .builder()
+      .setSubject(login)
+      .claim("userId", userId)
+      .claim("role", role)
+      .signWith(key)
+      .issuedAt(new Date())
+      .expiration(new Date(System.currentTimeMillis() + expirationTime))
+      .compact();
   }
+
 
   public String getLogiFromTokenn(String jwt) {
     return Jwts.parser()

@@ -1,5 +1,6 @@
 package com.yahve.eventmanager.service;
 
+import com.yahve.eventmanager.entity.User;
 import com.yahve.eventmanager.security.jwt.JwtTokenManager;
 import com.yahve.eventmanager.user.SignInRequest;
 import jakarta.validation.Valid;
@@ -14,6 +15,7 @@ public class JwtAuthenticationService {
 
   private final AuthenticationManager authenticationManager;
   private final JwtTokenManager jwtTokenManager;
+  private final UserService userService;
 
   public String authenticateUser(@Valid SignInRequest signInRequest) {
     authenticationManager.authenticate(
@@ -22,6 +24,15 @@ public class JwtAuthenticationService {
         signInRequest.password()
       )
     );
-    return jwtTokenManager.generateToken(signInRequest.login());
+
+    User user = userService.findByLogin(signInRequest.login());
+
+    return jwtTokenManager.generateToken(
+      user.getLogin(),
+      user.getId(),
+      user.getRole()
+    );
   }
 }
+
+
