@@ -27,6 +27,7 @@ public class EventService {
   private final EventRepository eventRepository;
   private final LocationService locationService;
   private final EventMapper eventMapper;
+  private final NotificationService notificationService;
   private final AuthenticationService authenticationService;
 
   public EventModel createEvent(EventModel eventModel) {
@@ -57,8 +58,10 @@ public class EventService {
       throw new BusinessLogicException("Cannot cancel event with status: " + event.getStatus(), HttpStatus.BAD_REQUEST);
     }
 
+    EventStatus oldStatus = event.getStatus();
     event.setStatus(EventStatus.CANCELLED);
     eventRepository.save(event);
+    notificationService.sendStatusChangeNotification(event, oldStatus, EventStatus.CANCELLED);
     logger.info("Event with ID {} has been cancelled", event.getId());
 
     return eventMapper.fromEntityToModel(event);
@@ -79,6 +82,8 @@ public class EventService {
 
     Event event = getEventEntityById(eventId);
     validateOwnerOrAdmin(event.getOwnerId());
+
+    notificationService.handleEventUpdate(event, eventModel);
 
     event.setName(eventModel.name());
     event.setMaxPlaces(eventModel.maxPlaces());
