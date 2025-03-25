@@ -12,6 +12,7 @@ import java.util.Date;
 public class JwtTokenManager {
 
   private final SecretKey key;
+
   private final long expirationTime;
 
   public JwtTokenManager(@Value("${jwt.secret-key}") String keyString, @Value("${jwt.lifetime}") long expirationTime) {
@@ -22,14 +23,14 @@ public class JwtTokenManager {
 
   public String generateToken(String login, Long userId, String role) {
     return Jwts
-      .builder()
-      .setSubject(login)
-      .claim("userId", userId)
-      .claim("role", role)
-      .signWith(key)
-      .issuedAt(new Date())
-      .expiration(new Date(System.currentTimeMillis() + expirationTime))
-      .compact();
+                .builder()
+                .setSubject(login)
+                .claim("userId", userId)
+                .claim("role", role)
+                .signWith(key)
+                .issuedAt(new Date())
+                .expiration(new Date(System.currentTimeMillis() + expirationTime))
+                .compact();
   }
 
   public String getLogiFromTokenn(String jwt) {

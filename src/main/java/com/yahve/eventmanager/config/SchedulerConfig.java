@@ -26,6 +26,7 @@ public class SchedulerConfig {
   private static final Logger logger = LoggerFactory.getLogger(SchedulerConfig.class);
 
   private final EventRepository eventRepository;
+
   private final NotificationService notificationService;
 
 
@@ -51,7 +52,6 @@ public class SchedulerConfig {
       EventStatus oldStatus = event.getStatus();
       event.setStatus(EventStatus.FINISHED);
       logger.info("Event {} completed", event.getId());
-
       notificationService.sendStatusChangeNotification(event, oldStatus, EventStatus.FINISHED);
     }
 
@@ -61,3 +61,4 @@ public class SchedulerConfig {
     logger.info("Event status update completed.");
   }
 }
+

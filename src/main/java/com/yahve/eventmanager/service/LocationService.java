@@ -65,6 +65,7 @@ public class LocationService {
   public void deleteLocation(Integer id) {
     logger.info("Attempting to delete location with ID: {}", id);
 
+    //to check if location exists
     getLocationById(id);
 
     if (eventRepository.existsByLocationId(id)) {
