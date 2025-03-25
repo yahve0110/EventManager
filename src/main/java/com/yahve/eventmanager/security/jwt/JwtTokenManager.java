@@ -11,8 +11,7 @@ import java.util.Date;
 @Component
 public class JwtTokenManager {
 
-  private final SecretKey key;
-
+  private  final SecretKey key;
   private final long expirationTime;
 
   public JwtTokenManager(@Value("${jwt.secret-key}") String keyString, @Value("${jwt.lifetime}") long expirationTime) {

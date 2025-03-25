@@ -62,7 +62,6 @@ public class EventService {
     event.setStatus(EventStatus.CANCELLED);
     eventRepository.save(event);
     notificationService.sendStatusChangeNotification(event, oldStatus, EventStatus.CANCELLED);
-
     logger.info("Event with ID {} has been cancelled", event.getId());
 
     return eventMapper.fromEntityToModel(event);

@@ -26,9 +26,7 @@ public class SchedulerConfig {
   private static final Logger logger = LoggerFactory.getLogger(SchedulerConfig.class);
 
   private final EventRepository eventRepository;
-
   private final NotificationService notificationService;
-
 
   @Transactional
   @Scheduled(fixedRateString = "${scheduler.event-status-update-rate}")
@@ -42,7 +40,6 @@ public class SchedulerConfig {
       EventStatus oldStatus = event.getStatus();
       event.setStatus(EventStatus.STARTED);
       logger.info("Event {} started", event.getId());
-
       notificationService.sendStatusChangeNotification(event, oldStatus, EventStatus.STARTED);
     }
 
