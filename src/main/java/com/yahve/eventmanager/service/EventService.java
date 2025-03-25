@@ -1,29 +1,23 @@
 package com.yahve.eventmanager.service;
 
 import com.yahve.eventmanager.entity.Event;
-import com.yahve.eventmanager.entity.Registration;
 import com.yahve.eventmanager.entity.User;
 import com.yahve.eventmanager.event.EventSearchFilter;
 import com.yahve.eventmanager.event.EventStatus;
-import com.yahve.eventmanager.event.KafkaEventMessage;
-import com.yahve.eventmanager.event.KafkaEventSender;
 import com.yahve.eventmanager.exception.BusinessLogicException;
 import com.yahve.eventmanager.exception.ResourceNotFoundException;
 import com.yahve.eventmanager.mapper.EventMapper;
 import com.yahve.eventmanager.model.EventModel;
 import com.yahve.eventmanager.model.LocationModel;
 import com.yahve.eventmanager.repository.EventRepository;
-import com.yahve.eventmanager.repository.RegistrationRepository;
 import com.yahve.eventmanager.user.UserRole;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import java.math.BigDecimal;
 import java.util.List;
-import java.util.Objects;
-import java.util.function.Consumer;
+
 
 @Service
 @RequiredArgsConstructor
@@ -33,9 +27,8 @@ public class EventService {
   private final EventRepository eventRepository;
   private final LocationService locationService;
   private final EventMapper eventMapper;
-  private final KafkaEventSender kafkaEventSender;
+  private final NotificationService notificationService;
   private final AuthenticationService authenticationService;
-  private final RegistrationRepository registrationRepository;
 
   public EventModel createEvent(EventModel eventModel) {
     logger.info("Starting to create event: {}", eventModel);
@@ -65,8 +58,11 @@ public class EventService {
       throw new BusinessLogicException("Cannot cancel event with status: " + event.getStatus(), HttpStatus.BAD_REQUEST);
     }
 
+    EventStatus oldStatus = event.getStatus();
     event.setStatus(EventStatus.CANCELLED);
     eventRepository.save(event);
+    notificationService.sendStatusChangeNotification(event, oldStatus, EventStatus.CANCELLED);
+
     logger.info("Event with ID {} has been cancelled", event.getId());
 
     return eventMapper.fromEntityToModel(event);
@@ -88,62 +84,19 @@ public class EventService {
     Event event = getEventEntityById(eventId);
     validateOwnerOrAdmin(event.getOwnerId());
 
-    var nameChange       = getFieldChange(event.getName(), eventModel.name(), event::setName);
-    var maxPlacesChange  = getFieldChange(event.getMaxPlaces(), eventModel.maxPlaces(), event::setMaxPlaces);
-    var dateChange       = getFieldChange(event.getDate(), eventModel.date(), event::setDate);
-    var costChange       = getFieldChange(event.getCost(), eventModel.cost(), event::setCost);
-    var durationChange   = getFieldChange(event.getDuration(), eventModel.duration(), event::setDuration);
-    var locationIdChange = getFieldChange(event.getLocationId(), eventModel.locationId(), event::setLocationId);
+    notificationService.handleEventUpdate(event, eventModel);
+
+    event.setName(eventModel.name());
+    event.setMaxPlaces(eventModel.maxPlaces());
+    event.setDate(eventModel.date());
+    event.setCost(eventModel.cost());
+    event.setDuration(eventModel.duration());
+    event.setLocationId(eventModel.locationId());
 
     eventRepository.save(event);
     logger.info("Event with ID {} has been updated", event.getId());
 
-    boolean hasChanges = nameChange != null || maxPlacesChange != null || dateChange != null ||
-      costChange != null || durationChange != null || locationIdChange != null;
-
-    if (hasChanges) {
-      KafkaEventMessage kafkaEventMessage = new KafkaEventMessage(
-        event.getId().longValue(),
-        authenticationService.getAuthenticatedUser().getId(),
-        event.getOwnerId(),
-        nameChange,
-        maxPlacesChange,
-        dateChange,
-        costChange,
-        durationChange,
-        locationIdChange,
-        null,
-        getSubscribers(event)
-      );
-
-      kafkaEventSender.sendEvent(kafkaEventMessage);
-    }
-
     return eventMapper.fromEntityToModel(event);
-  }
-
-
-  private <T> KafkaEventMessage.FieldChange<T> getFieldChange(T oldValue, T newValue, Consumer<T> setter) {
-    boolean changed;
-    if (oldValue instanceof BigDecimal oldDecimal && newValue instanceof BigDecimal newDecimal) {
-      changed = oldDecimal.compareTo(newDecimal) != 0;
-    } else {
-      changed = !Objects.equals(oldValue, newValue);
-    }
-
-
-    if (changed) {
-      setter.accept(newValue);
-      return new KafkaEventMessage.FieldChange<>(oldValue, newValue);
-    }
-    return null;
-  }
-
-  public List<Long> getSubscribers(Event event) {
-    return registrationRepository.findByEventId(event.getId())
-      .stream()
-      .map(Registration::getUserId)
-      .toList();
   }
 
   public List<EventModel> searchByFilter(EventSearchFilter searchFilter) {

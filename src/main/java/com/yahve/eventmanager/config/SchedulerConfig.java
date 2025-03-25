@@ -6,6 +6,7 @@ import com.yahve.eventmanager.event.KafkaEventMessage;
 import com.yahve.eventmanager.event.KafkaEventSender;
 import com.yahve.eventmanager.repository.EventRepository;
 import com.yahve.eventmanager.service.EventService;
+import com.yahve.eventmanager.service.NotificationService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -25,8 +26,8 @@ public class SchedulerConfig {
   private static final Logger logger = LoggerFactory.getLogger(SchedulerConfig.class);
 
   private final EventRepository eventRepository;
-  private final EventService eventService;
-  private final KafkaEventSender kafkaEventSender;
+  private final NotificationService notificationService;
+
 
   @Transactional
   @Scheduled(fixedRateString = "${scheduler.event-status-update-rate}")
@@ -37,32 +38,21 @@ public class SchedulerConfig {
 
     List<Event> eventsToStart = eventRepository.findByStatusAndDateBefore(EventStatus.WAIT_START, now);
     for (Event event : eventsToStart) {
+      EventStatus oldStatus = event.getStatus();
       event.setStatus(EventStatus.STARTED);
       logger.info("Event {} started", event.getId());
 
-      kafkaEventSender.sendEvent(new KafkaEventMessage(
-        event.getId().longValue(),
-        null,
-        event.getOwnerId(),
-        null, null, null, null, null, null,
-        new KafkaEventMessage.FieldChange<>(EventStatus.WAIT_START, EventStatus.STARTED),
-        eventService.getSubscribers(event)
-      ));
+      notificationService.sendStatusChangeNotification(event, oldStatus, EventStatus.STARTED);
     }
 
     List<Event> eventsToFinish = eventRepository.findByStatusAndEndDateBefore(EventStatus.STARTED.name(), now);
+
     for (Event event : eventsToFinish) {
+      EventStatus oldStatus = event.getStatus();
       event.setStatus(EventStatus.FINISHED);
       logger.info("Event {} completed", event.getId());
 
-      kafkaEventSender.sendEvent(new KafkaEventMessage(
-        event.getId().longValue(),
-        null,
-        event.getOwnerId(),
-        null, null, null, null, null, null,
-        new KafkaEventMessage.FieldChange<>(EventStatus.STARTED, EventStatus.FINISHED),
-        eventService.getSubscribers(event)
-      ));
+      notificationService.sendStatusChangeNotification(event, oldStatus, EventStatus.FINISHED);
     }
 
     eventRepository.saveAll(eventsToStart);
